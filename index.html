@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Inclusion Overview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+        }
+        #drop-area {
+            border: 2px dashed #ccc;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        #drop-area.hover {
+            border-color: #000;
+        }
+        #output {
+            margin-top: 15px;
+        }
+        .student {
+            border: 1px solid #ccc;
+            padding: 8px;
+            margin-bottom: 8px;
+            background-color: #f9f9f9;
+        }
+        .student p {
+            margin: 5px 0;
+        }
+        .buttons {
+            margin-top: 15px;
+        }
+        .buttons button {
+            margin-right: 8px;
+        }
+        .filter-dropdown {
+            margin-bottom: 15px;
+        }
+        .filter-dropdown select {
+            padding: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student Inclusion Overview</h1>
+    <div class="filter-dropdown">
+        <label for="filter">Filter by:</label>
+        <select id="filter">
+            <option value="all">All Students</option>
+            <option value="eal">EAL Students</option>
+            <option value="sen">SEN Students</option>
+        </select>
+    </div>
+    <div id="drop-area">
+        <p>Drag & drop XML files here</p>
+    </div>
+    <div class="buttons">
+        <button id="save-json">Save JSON</button>
+        <button id="load-json">Load JSON</button>
+        <input type="file" id="json-file" accept=".json" style="display: none;">
+    </div>
+    <div id="output"></div>
+
+    <script>
+        const dropArea = document.getElementById('drop-area');
+        const output = document.getElementById('output');
+        const saveJsonButton = document.getElementById('save-json');
+        const loadJsonButton = document.getElementById('load-json');
+        const jsonFileInput = document.getElementById('json-file');
+        const filterDropdown = document.getElementById('filter');
+
+        let studentsData = []; // Array to store all extracted student data
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop area when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('hover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('hover'), false);
+        });
+
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            [...files].forEach(processFile);
+        }
+
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const xmlText = e.target.result;
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+                const students = xmlDoc.getElementsByTagName('Row');
+
+                for (let i = 1; i < students.length; i++) { // Start from 1 to skip header
+                    const cells = students[i].getElementsByTagName('Cell');
+                    const inclusionQuickOverview = cells[9].textContent.trim();
+
+                    if (inclusionQuickOverview) {
+                        const surnameForename = cells[0].textContent.trim();
+                        const sex = cells[1].textContent.trim();
+                        const eal = cells[2].textContent.trim();
+                        const senStatus = cells[3].textContent.trim();
+                        const house = cells[4].textContent.trim();
+                        const className = cells[5].textContent.trim();
+                        const pupilPremium = cells[6].textContent.trim();
+                        const upn = cells[7].textContent.trim();
+                        const readingAge = cells[8].textContent.trim(); // Assuming reading age is in the 8th cell
+
+                        const student = {
+                            surnameForename,
+                            sex,
+                            eal,
+                            senStatus,
+                            house,
+                            className,
+                            pupilPremium,
+                            upn,
+                            readingAge,
+                            inclusionQuickOverview
+                        };
+
+                        // Add student to the global array if not already present
+                        if (!studentsData.some(s => s.upn === student.upn)) {
+                            studentsData.push(student);
+                            displayStudents();
+                        }
+                    }
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function displayStudents() {
+            const filterValue = filterDropdown.value;
+            output.innerHTML = ''; // Clear existing display
+
+            const filteredStudents = studentsData.filter(student => {
+                if (filterValue === 'eal') {
+                    return student.eal === 'Yes';
+                } else if (filterValue === 'sen') {
+                    return student.senStatus === 'Yes';
+                } else {
+                    return true; // Show all students
+                }
+            });
+
+            filteredStudents.forEach(student => {
+                const studentDiv = document.createElement('div');
+                studentDiv.className = 'student';
+                studentDiv.innerHTML = `
+                    <p><strong>Surname Forename:</strong> ${student.surnameForename}</p>
+                    <p><strong>Sex:</strong> ${student.sex}</p>
+                    <p><strong>EAL:</strong> ${student.eal}</p>
+                    <p><strong>SEN Status:</strong> ${student.senStatus}</p>
+                    <p><strong>House:</strong> ${student.house}</p>
+                    <p><strong>Class:</strong> ${student.className}</p>
+                    <p><strong>Pupil Premium:</strong> ${student.pupilPremium}</p>
+                    <p><strong>UPN:</strong> ${student.upn}</p>
+                    <p><strong>Reading Age:</strong> ${student.readingAge}</p>
+                    <p><strong>INCLUSION-Quick Overview:</strong> ${student.inclusionQuickOverview}</p>
+                `;
+                output.appendChild(studentDiv);
+            });
+        }
+
+        // Save JSON functionality
+        saveJsonButton.addEventListener('click', () => {
+            const jsonData = JSON.stringify(studentsData, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'students.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Load JSON functionality
+        loadJsonButton.addEventListener('click', () => {
+            jsonFileInput.click();
+        });
+
+        jsonFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const jsonData = JSON.parse(e.target.result);
+                    studentsData = jsonData; // Replace existing data with loaded data
+                    displayStudents(); // Display loaded students
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Filter functionality
+        filterDropdown.addEventListener('change', displayStudents);
+    </script>
+</body>
+</html>
