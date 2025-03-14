@@ -43,6 +43,39 @@
             padding: 5px;
             font-size: 14px;
         }
+        .toggle-button {
+            margin-bottom: 15px;
+        }
+        .reading-age-container {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+        .reading-age-container span {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .reading-age-bar {
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 3px;
+            min-width: 20px;
+            max-width: 300px;
+            color: white;
+            text-align: center;
+            line-height: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .compact-view {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .compact-view .student-name {
+            font-weight: bold;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -50,13 +83,16 @@
     <div class="filter-dropdown">
         <label for="filter">Filter by:</label>
         <select id="filter">
-            <option value="all">All Students</option>
+            <option value="default">Default</option>
             <option value="eal">EAL Students</option>
             <option value="sen">SEN Students</option>
         </select>
     </div>
+    <div class="toggle-button">
+        <button id="toggle-info">Switch to Full Info View</button>
+    </div>
     <div id="drop-area">
-        <p>Drag & drop XML files here</p>
+        <p>Drag and drop any unformatted class XML files from SIMS</p>
     </div>
     <div class="buttons">
         <button id="save-json">Save JSON</button>
@@ -72,8 +108,10 @@
         const loadJsonButton = document.getElementById('load-json');
         const jsonFileInput = document.getElementById('json-file');
         const filterDropdown = document.getElementById('filter');
+        const toggleInfoButton = document.getElementById('toggle-info');
 
         let studentsData = []; // Array to store all extracted student data
+        let showMinimalInfo = true; // Default to minimal info display
 
         // Prevent default drag behaviors
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -119,37 +157,35 @@
 
                 for (let i = 1; i < students.length; i++) { // Start from 1 to skip header
                     const cells = students[i].getElementsByTagName('Cell');
-                    const inclusionQuickOverview = cells[9].textContent.trim();
+                    const inclusionQuickOverview = cells[9].textContent.trim(); // Column J (10th column)
 
-                    if (inclusionQuickOverview) {
-                        const surnameForename = cells[0].textContent.trim();
-                        const sex = cells[1].textContent.trim();
-                        const eal = cells[2].textContent.trim();
-                        const senStatus = cells[3].textContent.trim();
-                        const house = cells[4].textContent.trim();
-                        const className = cells[5].textContent.trim();
-                        const pupilPremium = cells[6].textContent.trim();
-                        const upn = cells[7].textContent.trim();
-                        const readingAge = cells[8].textContent.trim(); // Assuming reading age is in the 8th cell
+                    const surnameForename = cells[0].textContent.trim(); // Column A (1st column)
+                    const sex = cells[1].textContent.trim(); // Column B (2nd column)
+                    const eal = cells[2].textContent.trim(); // Column C (3rd column)
+                    const senStatus = cells[3].textContent.trim(); // Column D (4th column)
+                    const house = cells[4].textContent.trim(); // Column E (5th column)
+                    const className = cells[5].textContent.trim(); // Column F (6th column)
+                    const pupilPremium = cells[6].textContent.trim(); // Column G (7th column)
+                    const upn = cells[7].textContent.trim(); // Column H (8th column)
+                    const readingAge = cells[24].textContent.trim(); // Column Z (26th column)
 
-                        const student = {
-                            surnameForename,
-                            sex,
-                            eal,
-                            senStatus,
-                            house,
-                            className,
-                            pupilPremium,
-                            upn,
-                            readingAge,
-                            inclusionQuickOverview
-                        };
+                    const student = {
+                        surnameForename,
+                        sex,
+                        eal,
+                        senStatus,
+                        house,
+                        className,
+                        pupilPremium,
+                        upn,
+                        readingAge,
+                        inclusionQuickOverview
+                    };
 
-                        // Add student to the global array if not already present
-                        if (!studentsData.some(s => s.upn === student.upn)) {
-                            studentsData.push(student);
-                            displayStudents();
-                        }
+                    // Add student to the global array if not already present
+                    if (!studentsData.some(s => s.upn === student.upn)) {
+                        studentsData.push(student);
+                        displayStudents();
                     }
                 }
             };
@@ -162,31 +198,73 @@
 
             const filteredStudents = studentsData.filter(student => {
                 if (filterValue === 'eal') {
-                    return student.eal === 'Yes';
+                    return student.eal === 'Y'; // Filter for EAL = 'Y'
                 } else if (filterValue === 'sen') {
-                    return student.senStatus === 'Yes';
+                    return student.inclusionQuickOverview.trim() !== ''; // Filter for non-empty inclusionQuickOverview
                 } else {
-                    return true; // Show all students
+                    return true; // Show all students (default)
                 }
             });
 
             filteredStudents.forEach(student => {
                 const studentDiv = document.createElement('div');
                 studentDiv.className = 'student';
-                studentDiv.innerHTML = `
-                    <p><strong>Surname Forename:</strong> ${student.surnameForename}</p>
-                    <p><strong>Sex:</strong> ${student.sex}</p>
-                    <p><strong>EAL:</strong> ${student.eal}</p>
-                    <p><strong>SEN Status:</strong> ${student.senStatus}</p>
-                    <p><strong>House:</strong> ${student.house}</p>
-                    <p><strong>Class:</strong> ${student.className}</p>
-                    <p><strong>Pupil Premium:</strong> ${student.pupilPremium}</p>
-                    <p><strong>UPN:</strong> ${student.upn}</p>
-                    <p><strong>Reading Age:</strong> ${student.readingAge}</p>
-                    <p><strong>INCLUSION-Quick Overview:</strong> ${student.inclusionQuickOverview}</p>
-                `;
+                
+                if (showMinimalInfo) {
+                    // Parse reading age as a number
+                    const readingAgeVal = parseReadingAge(student.readingAge);
+                    const barWidth = calculateBarWidth(readingAgeVal);
+                    
+                    studentDiv.innerHTML = `
+                        <div class="compact-view">
+                            <span class="student-name">${student.surnameForename}</span>
+                            <div class="reading-age-container">
+                                <span>Reading Age:</span>
+                                <div class="reading-age-bar" style="width: ${barWidth}px;">${student.readingAge}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    studentDiv.innerHTML = `
+                        <p><strong>Surname Forename:</strong> ${student.surnameForename}</p>
+                        <p><strong>Sex:</strong> ${student.sex}</p>
+                        <p><strong>EAL:</strong> ${student.eal}</p>
+                        <p><strong>SEN Status:</strong> ${student.senStatus}</p>
+                        <p><strong>House:</strong> ${student.house}</p>
+                        <p><strong>Class:</strong> ${student.className}</p>
+                        <p><strong>Pupil Premium:</strong> ${student.pupilPremium}</p>
+                        <p><strong>UPN:</strong> ${student.upn}</p>
+                        <p><strong>Reading Age:</strong> ${student.readingAge}</p>
+                        <p><strong>INCLUSION-Quick Overview:</strong> ${student.inclusionQuickOverview}</p>
+                    `;
+                }
                 output.appendChild(studentDiv);
             });
+        }
+        
+        // Function to parse reading age (handles formats like "10:06" or "10.5")
+        function parseReadingAge(readingAge) {
+            if (!readingAge) return 0;
+            
+            if (readingAge.includes(':')) {
+                const [years, months] = readingAge.split(':');
+                return parseFloat(years) + (parseFloat(months) / 12);
+            } else {
+                return parseFloat(readingAge) || 0;
+            }
+        }
+        
+        // Function to calculate bar width based on reading age
+        function calculateBarWidth(readingAge) {
+            if (!readingAge) return 20;
+            
+            // Scale: 0 = 20px, 18 = 300px (max width)
+            const minWidth = 20;
+            const maxWidth = 300;
+            const maxAge = 18;
+            
+            const width = minWidth + ((readingAge / maxAge) * (maxWidth - minWidth));
+            return Math.min(maxWidth, Math.max(minWidth, width));
         }
 
         // Save JSON functionality
@@ -222,6 +300,13 @@
 
         // Filter functionality
         filterDropdown.addEventListener('change', displayStudents);
+
+        // Toggle info functionality
+        toggleInfoButton.addEventListener('click', () => {
+            showMinimalInfo = !showMinimalInfo;
+            displayStudents();
+            toggleInfoButton.textContent = showMinimalInfo ? 'Switch to Full Info View' : 'Switch to Compact View';
+        });
     </script>
 </body>
 </html>
