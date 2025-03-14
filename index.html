@@ -6,99 +6,191 @@
     <title>Student Inclusion Overview</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 10px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.4;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin: 0 0 16px 0;
+            color: #2c3e50;
         }
         #drop-area {
-            border: 2px dashed #ccc;
-            padding: 15px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 4px;
+            padding: 16px;
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
         }
         #drop-area.hover {
-            border-color: #000;
+            border-color: #3498db;
+            background-color: #e3f2fd;
+        }
+        #drop-area p {
+            margin: 0;
+            color: #64748b;
         }
         #output {
-            margin-top: 15px;
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
         }
         .student {
-            border: 1px solid #ccc;
-            padding: 8px;
-            margin-bottom: 8px;
-            background-color: #f9f9f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
         }
-        .student p {
-            margin: 5px 0;
+        .student:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
         }
         .buttons {
-            margin-top: 15px;
+            margin: 16px 0;
+            display: flex;
+            gap: 8px;
         }
-        .buttons button {
-            margin-right: 8px;
-        }
-        .filter-dropdown {
-            margin-bottom: 15px;
-        }
-        .filter-dropdown select {
-            padding: 5px;
+        .buttons button, .toggle-button button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
             font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .buttons button:hover, .toggle-button button:hover {
+            background-color: #2980b9;
+        }
+        .filter-dropdown, .sort-dropdown {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+        .filter-dropdown label, .sort-dropdown label {
+            margin-right: 8px;
+            font-weight: 500;
+        }
+        .filter-dropdown select, .sort-dropdown select {
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e0;
+            font-size: 14px;
+            background-color: white;
         }
         .toggle-button {
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }
         .reading-age-container {
             display: flex;
             align-items: center;
-            margin-top: 5px;
+            margin-top: 2px;
         }
         .reading-age-container span {
-            margin-right: 10px;
-            font-weight: bold;
+            margin-right: 8px;
+            font-weight: 500;
+            font-size: 13px;
+            min-width: 82px;
         }
         .reading-age-bar {
-            height: 20px;
-            background-color: #4CAF50;
+            height: 18px;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
             border-radius: 3px;
             min-width: 20px;
-            max-width: 300px;
+            max-width: 200px;
             color: white;
             text-align: center;
-            line-height: 20px;
+            line-height: 18px;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 600;
+            text-shadow: 0px 0px 2px rgba(0,0,0,0.3);
         }
         .compact-view {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 4px;
         }
         .compact-view .student-name {
-            font-weight: bold;
-            margin-right: 10px;
+            font-weight: 600;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #1a202c;
+        }
+        .controls-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        p {
+            margin: 4px 0;
+            font-size: 14px;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 4px 8px;
+            font-size: 14px;
+        }
+        .detail-grid strong {
+            color: #4a5568;
         }
     </style>
 </head>
 <body>
     <h1>Student Inclusion Overview</h1>
-    <div class="filter-dropdown">
-        <label for="filter">Filter by:</label>
-        <select id="filter">
-            <option value="default">Default</option>
-            <option value="eal">EAL Students</option>
-            <option value="sen">SEN Students</option>
-        </select>
+    
+    <div class="controls-container">
+        <div class="control-group">
+            <div class="filter-dropdown">
+                <label for="filter">Filter by:</label>
+                <select id="filter">
+                    <option value="default">Default</option>
+                    <option value="eal">EAL Students</option>
+                    <option value="sen">SEN Students</option>
+                    <option value="pp">Pupil Premium</option>
+                </select>
+            </div>
+            <div class="sort-dropdown">
+                <label for="sort">Sort by:</label>
+                <select id="sort">
+                    <option value="reading-age" selected>Reading Age</option>
+                    <option value="name">Name (A to Z)</option>
+                </select>
+            </div>
+            <div class="toggle-button">
+                <button id="toggle-info">Switch to Full Info</button>
+            </div>
+        </div>
+        <div class="buttons">
+            <button id="save-json">Save JSON</button>
+            <button id="load-json">Load JSON</button>
+            <input type="file" id="json-file" accept=".json" style="display: none;">
+        </div>
     </div>
-    <div class="toggle-button">
-        <button id="toggle-info">Switch to Full Info View</button>
-    </div>
+    
     <div id="drop-area">
         <p>Drag and drop any unformatted class XML files from SIMS</p>
     </div>
-    <div class="buttons">
-        <button id="save-json">Save JSON</button>
-        <button id="load-json">Load JSON</button>
-        <input type="file" id="json-file" accept=".json" style="display: none;">
-    </div>
+    
     <div id="output"></div>
 
     <script>
@@ -108,6 +200,7 @@
         const loadJsonButton = document.getElementById('load-json');
         const jsonFileInput = document.getElementById('json-file');
         const filterDropdown = document.getElementById('filter');
+        const sortDropdown = document.getElementById('sort');
         const toggleInfoButton = document.getElementById('toggle-info');
 
         let studentsData = []; // Array to store all extracted student data
@@ -194,6 +287,8 @@
 
         function displayStudents() {
             const filterValue = filterDropdown.value;
+            const sortValue = sortDropdown.value;
+
             output.innerHTML = ''; // Clear existing display
 
             const filteredStudents = studentsData.filter(student => {
@@ -201,23 +296,32 @@
                     return student.eal === 'Y'; // Filter for EAL = 'Y'
                 } else if (filterValue === 'sen') {
                     return student.inclusionQuickOverview.trim() !== ''; // Filter for non-empty inclusionQuickOverview
+                } else if (filterValue === 'pp') {
+                    return student.pupilPremium === 'Y'; // Filter for Pupil Premium = 'Y'
                 } else {
                     return true; // Show all students (default)
                 }
             });
 
+            // Sort students based on the selected sorting option
+            if (sortValue === 'reading-age') {
+                filteredStudents.sort((a, b) => parseReadingAge(a.readingAge) - parseReadingAge(b.readingAge));
+            } else if (sortValue === 'name') {
+                filteredStudents.sort((a, b) => a.surnameForename.localeCompare(b.surnameForename));
+            }
+
             filteredStudents.forEach(student => {
                 const studentDiv = document.createElement('div');
                 studentDiv.className = 'student';
                 
+                // Parse reading age as a number for both views
+                const readingAgeVal = parseReadingAge(student.readingAge);
+                const barWidth = calculateBarWidth(readingAgeVal);
+                
                 if (showMinimalInfo) {
-                    // Parse reading age as a number
-                    const readingAgeVal = parseReadingAge(student.readingAge);
-                    const barWidth = calculateBarWidth(readingAgeVal);
-                    
                     studentDiv.innerHTML = `
                         <div class="compact-view">
-                            <span class="student-name">${student.surnameForename}</span>
+                            <div class="student-name">${student.surnameForename}</div>
                             <div class="reading-age-container">
                                 <span>Reading Age:</span>
                                 <div class="reading-age-bar" style="width: ${barWidth}px;">${student.readingAge}</div>
@@ -226,22 +330,23 @@
                     `;
                 } else {
                     studentDiv.innerHTML = `
-                        <p><strong>Surname Forename:</strong> ${student.surnameForename}</p>
-                        <p><strong>Sex:</strong> ${student.sex}</p>
-                        <p><strong>EAL:</strong> ${student.eal}</p>
-                        <p><strong>SEN Status:</strong> ${student.senStatus}</p>
-                        <p><strong>House:</strong> ${student.house}</p>
-                        <p><strong>Class:</strong> ${student.className}</p>
-                        <p><strong>Pupil Premium:</strong> ${student.pupilPremium}</p>
-                        <p><strong>UPN:</strong> ${student.upn}</p>
-                        <p><strong>Reading Age:</strong> ${student.readingAge}</p>
-                        <p><strong>INCLUSION-Quick Overview:</strong> ${student.inclusionQuickOverview}</p>
+                        <div class="detail-grid">
+                            <strong>Name:</strong> <span>${student.surnameForename}</span>
+                            <strong>Sex:</strong> <span>${student.sex}</span>
+                            <strong>EAL:</strong> <span>${student.eal}</span>
+                            <strong>SEN Status:</strong> <span>${student.senStatus}</span>
+                            <strong>Class:</strong> <span>${student.className}</span>
+                            <strong>Pupil Premium:</strong> <span>${student.pupilPremium}</span>
+                            <strong>Reading Age:</strong>
+                            <span class="reading-age-bar" style="width: ${barWidth}px;">${student.readingAge}</span>
+                            <strong>INCLUSION:</strong> <span>${student.inclusionQuickOverview}</span>
+                        </div>
                     `;
                 }
                 output.appendChild(studentDiv);
             });
         }
-        
+
         // Function to parse reading age (handles formats like "10:06" or "10.5")
         function parseReadingAge(readingAge) {
             if (!readingAge) return 0;
@@ -253,14 +358,14 @@
                 return parseFloat(readingAge) || 0;
             }
         }
-        
+
         // Function to calculate bar width based on reading age
         function calculateBarWidth(readingAge) {
             if (!readingAge) return 20;
             
-            // Scale: 0 = 20px, 18 = 300px (max width)
+            // Scale: 0 = 20px, 18 = 200px (max width)
             const minWidth = 20;
-            const maxWidth = 300;
+            const maxWidth = 200;
             const maxAge = 18;
             
             const width = minWidth + ((readingAge / maxAge) * (maxWidth - minWidth));
@@ -301,11 +406,14 @@
         // Filter functionality
         filterDropdown.addEventListener('change', displayStudents);
 
+        // Sort functionality
+        sortDropdown.addEventListener('change', displayStudents);
+
         // Toggle info functionality
         toggleInfoButton.addEventListener('click', () => {
             showMinimalInfo = !showMinimalInfo;
             displayStudents();
-            toggleInfoButton.textContent = showMinimalInfo ? 'Switch to Full Info View' : 'Switch to Compact View';
+            toggleInfoButton.textContent = showMinimalInfo ? 'Switch to Full Info' : 'Switch to Compact View';
         });
     </script>
 </body>
